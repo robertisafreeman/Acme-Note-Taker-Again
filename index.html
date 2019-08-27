@@ -34,7 +34,7 @@ input, button {
 
       const fetchUser = async ()=> {
         const storage = window.localStorage;
-        const userId = storage.getItem('userId'); 
+        const userId = storage.getItem('userId');
         if(userId){
           try {
             return (await axios.get(`${API}/users/detail/${userId}`)).data;
@@ -57,7 +57,7 @@ input, button {
         return (
           <ul>
             {
-              notes.filter(note => note.archived === archived).map( note => <li 
+              notes.filter(note => note.archived === archived).map( note => <li
                 key={ note.id }>
                   <Link to={`/notes/${note.id}`} >{note.text}</Link>
                   <br />
@@ -69,32 +69,37 @@ input, button {
         );
       };
 
-      class Edit extends Component {
-          constructor(){
-              super();
-              this.state = {
-                  notes: []
-              };
-              this.componentDidMount = this.componentDidMount.bind(this)
+      class Edit extends Component{
+        constructor({ match, notes }){
+          super();
+          const found = notes.find( note => note.id === match.params.id);console.log(found);
+          this.state = {
+            text: found ? found.text: '',
+            loaded: found ? true: false,
+            error: ''
+          };
+          //this.update = this.update.bind(this);
+        }
+
+
+        componentDidUpdate(prevProps){
+          const found = this.props.notes.find( note => note.id === this.props.match.params.id);
+          if(!this.state.loaded && found){
+            this.setState({ text: found.text, loaded: true});
           }
-          async componentDidMount(){
-            const theid = this.props.match.params.id;
-            const response = await axios.get(`${API}/users/${this.state.user.id}/notes/${theid}`)
-            this.setState({ notes: response.data });
-          }
+        }
           render(){
               const { notes } = this.state;
               const { update } = this.props;
               return (
                   <div>
                     <input value={ notes } onChange={(ev) => this.setState({ notes: ev.target.value })}/>
-                    <button disabled={ notes === this.props.notes } onClick={()=> update(notes) }>Update</button> 
+                    <button disabled={ notes === this.props.notes } onClick={()=> update(notes) }>Update</button>
                   </div>
               )
 
           }
       }
-      
 
       const Nav = ({ path, notes })=> {
         const archived = notes.filter( note => note.archived);
@@ -109,7 +114,7 @@ input, button {
 
       class Create extends Component{
         constructor(){
-          super(); 
+          super();
           this.state = {
             text: '',
             error: ''
@@ -161,7 +166,7 @@ input, button {
         async create(note){
           const created = (await axios.post(`${API}/users/${this.state.user.id}/notes`, note)).data;
           const notes = [...this.state.notes, created ];
-          this.setState({ notes }); 
+          this.setState({ notes });
         }
         render(){
           const { notes, user } = this.state;
