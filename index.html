@@ -59,7 +59,7 @@ input, button {
             {
               notes.filter(note => note.archived === archived).map( note => <li 
                 key={ note.id }>
-                  { note.text}
+                  <Link to={`/notes/${note.id}`} >{note.text}</Link>
                   <br />
                   <button onClick={()=> { update({...note, archived: !note.archived})}}>{ archived ? 'unarchive': 'archive' }</button>
                   <button onClick={ ()=> destroy(note)}>destroy</button>
@@ -67,8 +67,34 @@ input, button {
             }
           </ul>
         );
-
       };
+
+      class Edit extends Component {
+          constructor(){
+              super();
+              this.state = {
+                  notes: []
+              };
+              this.componentDidMount = this.componentDidMount.bind(this)
+          }
+          async componentDidMount(){
+            const theid = this.props.match.params.id;
+            const response = await axios.get(`${API}/users/${this.state.user.id}/notes/${theid}`)
+            this.setState({ notes: response.data });
+          }
+          render(){
+              const { notes } = this.state;
+              const { update } = this.props;
+              return (
+                  <div>
+                    <input value={ notes } onChange={(ev) => this.setState({ notes: ev.target.value })}/>
+                    <button disabled={ notes === this.props.notes } onClick={()=> update(notes) }>Update</button> 
+                  </div>
+              )
+
+          }
+      }
+      
 
       const Nav = ({ path, notes })=> {
         const archived = notes.filter( note => note.archived);
@@ -148,6 +174,7 @@ input, button {
                 <Route exact path='/notes' render={ ()=> <Notes destroy={ destroy} archived={ false } notes={ notes} update={ update }/> } />
                 <Route path='/notes/create' render={ ({ history })=> <Create history={ history } create={ create } notes={ notes } /> } />
                 <Route path='/archived' render={ ()=> <Notes destroy={ destroy } archived={ true } notes={ notes} update={ update }/> } />
+                <Route path='/notes/:id?' render={( props )=> <Edit {...props}  notes={ notes } update={ update }/>}/>
                 <Redirect to='/notes' />
               </Switch>
             </HashRouter>
